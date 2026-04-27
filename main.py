@@ -9,6 +9,8 @@ import os, base64, json, uuid
 import PIL.Image, io
 import datetime
 
+# Redeploy trigger
+
 # ── Load env & configure Gemini ──────────────────────────────────────────────
 load_dotenv()
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY", "")
