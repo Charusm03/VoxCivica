@@ -216,17 +216,22 @@ class FlagRequest(BaseModel):
 def save_complaint(req: SaveRequest):
     try:
         # Rate Limiting check: max 5 complaints per 24 hours per user
-        from datetime import datetime, timedelta
-        cutoff = (datetime.utcnow() - timedelta(hours=24)).isoformat()
-        
-        recent = supabase.table("complaints")\
-            .select("id")\
-            .eq("user_email", req.user_email)\
-            .gte("created_at", cutoff)\
-            .execute()
+        # Only apply if it's a real user email (not anonymous)
+        if req.user_email and "@" in req.user_email and req.user_email != "anonymous@example.com":
+            from datetime import datetime, timedelta
+            cutoff = (datetime.utcnow() - timedelta(hours=24)).isoformat()
             
-        if len(recent.data) >= 5:
-            raise HTTPException(status_code=429, detail="Limit reached: max 5 complaints per 24 hours")
+            recent = supabase.table("complaints")\
+                .select("id")\
+                .eq("user_email", req.user_email)\
+                .gte("created_at", cutoff)\
+                .execute()
+                
+            if len(recent.data) >= 5:
+                raise HTTPException(
+                    status_code=429, 
+                    detail=f"Limit reached for {req.user_email}: You can only submit 5 complaints every 24 hours."
+                )
 
         result = supabase.table("complaints").insert({
             "user_email": req.user_email,
