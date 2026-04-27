@@ -11,17 +11,19 @@ import datetime
 
 # ── Load env & configure Gemini ──────────────────────────────────────────────
 load_dotenv()
-GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
+GEMINI_API_KEY = os.getenv("GEMINI_API_KEY", "")
+SUPABASE_URL   = os.getenv("SUPABASE_URL", "")
+SUPABASE_KEY   = os.getenv("SUPABASE_KEY", "")
+
 if not GEMINI_API_KEY:
-    raise RuntimeError("GEMINI_API_KEY not found in .env file!")
+    print("[WARNING] GEMINI_API_KEY is not set — AI features will fail.")
+if not SUPABASE_URL or not SUPABASE_KEY:
+    print("[WARNING] Supabase credentials are not set — DB features will fail.")
 
-client = genai.Client(api_key=GEMINI_API_KEY)
-MODEL = "gemini-2.5-flash-lite"          # using lite for faster analysis
+client = genai.Client(api_key=GEMINI_API_KEY) if GEMINI_API_KEY else None
+MODEL = "gemini-2.5-flash-lite"
 
-supabase = create_client(
-    os.getenv("SUPABASE_URL", ""),
-    os.getenv("SUPABASE_KEY", "")
-)
+supabase = create_client(SUPABASE_URL, SUPABASE_KEY) if SUPABASE_URL and SUPABASE_KEY else None
 
 # ── App setup ─────────────────────────────────────────────────────────────────
 app = FastAPI(title="VoxCivica API", version="1.0.0")
