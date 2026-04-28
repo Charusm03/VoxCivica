@@ -23,7 +23,7 @@ if not SUPABASE_URL or not SUPABASE_KEY:
     print("[WARNING] Supabase credentials are not set — DB features will fail.")
 
 client = genai.Client(api_key=GEMINI_API_KEY) if GEMINI_API_KEY else None
-MODEL  = "gemini-2.0-flash"
+MODEL  = "gemini-2.5-flash"
 
 supabase = create_client(SUPABASE_URL, SUPABASE_KEY) if (SUPABASE_URL and SUPABASE_KEY) else None
 
