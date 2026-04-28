@@ -23,9 +23,9 @@ if not SUPABASE_URL or not SUPABASE_KEY:
     print("[WARNING] Supabase credentials are not set — DB features will fail.")
 
 client = genai.Client(api_key=GEMINI_API_KEY) if GEMINI_API_KEY else None
-MODEL = "gemini-2.5-flash-lite"
+MODEL  = "gemini-1.5-flash"
 
-supabase = create_client(SUPABASE_URL, SUPABASE_KEY) if SUPABASE_URL and SUPABASE_KEY else None
+supabase = create_client(SUPABASE_URL, SUPABASE_KEY) if (SUPABASE_URL and SUPABASE_KEY) else None
 
 # ── App setup ─────────────────────────────────────────────────────────────────
 app = FastAPI(title="VoxCivica API", version="1.0.0")
@@ -78,6 +78,8 @@ def root():
 
 @app.post("/generate-petition")
 def generate_petition(req: ComplaintRequest):
+    if not client:
+        raise HTTPException(status_code=500, detail="Gemini API Key not configured on server.")
     try:
         language_instruction = {
             "Tamil": "முழு மனுவையும் தமிழிலேயே எழுதவும். ஆங்கிலம் பயன்படுத்தாதீர்கள்.",
@@ -216,6 +218,10 @@ class FlagRequest(BaseModel):
 
 @app.post("/save-complaint")
 def save_complaint(req: SaveRequest):
+    if not supabase:
+        # Fallback for testing if Supabase isn't linked yet
+        return {"saved": True, "id": "mock-id-no-supabase", "warning": "Supabase not configured"}
+        
     try:
         # Rate Limiting check: max 5 complaints per 24 hours per user
         # Only apply if it's a real user email (not anonymous)
